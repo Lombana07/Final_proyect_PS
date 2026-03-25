@@ -2,11 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const { sequelize } = require('./Models'); // ⚠️ revisa minúscula
 const customerRoutes = require('./Routes/CustomerRoutes');
+const authRoutes = require('./Routes/authRoutes');
 
 const app = express(); // ✅ PRIMERO crear app
 
 // Middlewares
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 // Rutas
 app.use('/api/customers', customerRoutes);

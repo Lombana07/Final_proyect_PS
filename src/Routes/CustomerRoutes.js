@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const controller = require('../Controllers/CustomerController');
-const { verifyToken, checkRole } = require('../Middlewares/auth.middleware');
+const { verifyToken, checkRole } = require('../Middlewares/authMiddlewares');
 
 // CREATE → ADMIN, BILLER
 router.post(
