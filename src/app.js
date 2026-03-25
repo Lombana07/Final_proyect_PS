@@ -3,6 +3,18 @@ const express = require('express');
 const { sequelize } = require('./Models');
 
 const customerRoutes = require('./Routes/CustomerRoutes');
+const authRoutes = require('./Routes/authRoutes');
+
+const app = express(); // ✅ PRIMERO
+
+// 🔥 MIDDLEWARES
+app.use(express.json());
+
+// 🔥 RUTAS
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+
+// 🚀 SERVIDOR
 const userRoutes = require('./Routes/UserRoutes');
 
 const app = express();

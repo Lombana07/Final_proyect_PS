@@ -16,7 +16,7 @@ exports.verifyToken = (req, res, next) => {
 
 exports.checkRole = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.rol)) {
+    if (!roles.includes(req.user.role)) { // 👈 FIX AQUÍ
       return res.status(403).json({ message: 'Forbidden: insufficient role' });
     }
     next();
