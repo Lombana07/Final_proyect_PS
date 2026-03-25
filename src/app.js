@@ -1,20 +1,20 @@
 require('dotenv').config();
 const express = require('express');
-const { sequelize } = require('./Models'); // ⚠️ revisa minúscula
+const { sequelize } = require('./Models');
+
 const customerRoutes = require('./Routes/CustomerRoutes');
 const authRoutes = require('./Routes/authRoutes');
 
-const app = express(); // ✅ PRIMERO crear app
+const app = express(); // ✅ PRIMERO
 
-// Middlewares
+// 🔥 MIDDLEWARES
 app.use(express.json());
 
+// 🔥 RUTAS
 app.use('/api/auth', authRoutes);
-
-// Rutas
 app.use('/api/customers', customerRoutes);
 
-// Inicio del servidor
+// 🚀 SERVIDOR
 async function startServer() {
   try {
     await sequelize.authenticate();
