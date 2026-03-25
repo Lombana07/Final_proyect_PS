@@ -15,6 +15,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 
 // 🚀 SERVIDOR
+const userRoutes = require('./Routes/UserRoutes');
+
+const app = express();
+
+// 🔥 PRIMERO LOS MIDDLEWARES
+app.use(express.json());
+
+// 🔥 LUEGO LAS RUTAS
+app.use('/api/users', userRoutes);
+app.use('/api/customers', customerRoutes);
+
+// 🚀 INICIO DEL SERVIDOR
 async function startServer() {
   try {
     await sequelize.authenticate();
