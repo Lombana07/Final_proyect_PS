@@ -1,7 +1,7 @@
-const controller = require('../../src/controllers/customer.controller');
-const service = require('../../src/services/customer.service');
+const controller = require('../../src/Controllers/CustomerController');
+const service = require('../../src/Services/CustomerServices');
 
-jest.mock('../../src/services/customer.service');
+jest.mock('../../src/Services/CustomerServices');
 
 describe('Customer Controller', () => {
 
