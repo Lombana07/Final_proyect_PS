@@ -1,7 +1,7 @@
-const service = require('../../src/services/customerservice');
-const Customer = require('../../src/Models/customer.model');
+const service = require('../../src/Services/CustomerServices');
+const Customer = require('../../src/Models/Customer');
 
-jest.mock('../../src/models/customer.model');
+jest.mock('../../src/Models/Customer');
 
 describe('Customer Service', () => {
 
