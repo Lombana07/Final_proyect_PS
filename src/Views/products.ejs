@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - FacturaX</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<main>
+    <div class="header">
+        <h2>Gestión de Productos</h2>
+        <button class="btn-primary" onclick="openCreateModal()">+ Nuevo Producto</button>
+    </div>
+
+    <div class="stat-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Precio Unitario</th>
+                    <th>IVA (%)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% products.forEach(product => { %>
+                <tr>
+                    <td><%= product.id %></td>
+                    <td><%= product.name %></td>
+                    <td>$<%= product.price %></td>
+                    <td><%= product.taxPercentage %>%</td>
+                    <td>
+
+                        <button class="btn-edit"
+                        onclick="openEditModal(
+                        '<%= product.id %>',
+                        '<%= product.name %>',
+                        '<%= product.price %>',
+                        '<%= product.taxPercentage %>'
+                        )">
+                        Editar
+                        </button>
+
+                        <button class="btn-delete"
+                        onclick="disableProduct('<%= product.id %>')">
+                        Desactivar
+                        </button>
+
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- MODAL CREAR -->
+<div id="createProductModal" class="modal" style="display:none;">
+    <div class="modal-content stat-card">
+
+        <div class="header">
+            <h3>Registrar Nuevo Producto</h3>
+            <button class="btn-delete" onclick="closeModal('createProductModal')">X</button>
+        </div>
+
+        <form id="createProductForm">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="createName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Precio Unitario</label>
+                <input type="number" id="createPrice" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>IVA (%)</label>
+                <input type="number" id="createTax" step="0.01" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width:100%; margin-top:15px;">
+                Guardar Producto
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="editProductModal" class="modal" style="display:none;">
+    <div class="modal-content stat-card">
+
+        <div class="header">
+            <h3>Actualizar Producto</h3>
+            <button class="btn-delete" onclick="closeModal('editProductModal')">X</button>
+        </div>
+
+        <form id="editProductForm">
+
+            <input type="hidden" id="editProductId">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="editName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Precio Unitario</label>
+                <input type="number" id="editPrice" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>IVA (%)</label>
+                <input type="number" id="editTax" step="0.01" required>
+            </div>
+
+            <button type="submit"
+            class="btn-primary"
+            style="width:100%; margin-top:15px; background:#ffc107; color:black;">
+                Actualizar Producto
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<script>
+
+const token = localStorage.getItem('token');
+
+/* ---------- VALIDAR TOKEN ---------- */
+if (!token) {
+    alert("Debes iniciar sesión");
+    window.location.href = "/";
+}
+
+/* ---------- ABRIR MODAL CREAR ---------- */
+function openCreateModal() {
+    document.getElementById("createProductModal").style.display = "flex";
+}
+
+/* ---------- ABRIR MODAL EDITAR ---------- */
+function openEditModal(id, name, price, tax) {
+
+    document.getElementById("editProductId").value = id;
+    document.getElementById("editName").value = name;
+    document.getElementById("editPrice").value = price;
+    document.getElementById("editTax").value = tax;
+
+    document.getElementById("editProductModal").style.display = "flex";
+}
+
+/* ---------- CERRAR MODAL ---------- */
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+/* ---------- CREAR PRODUCTO ---------- */
+document.getElementById("createProductForm").onsubmit = async (e) => {
+
+    e.preventDefault();
+
+    const data = {
+        name: document.getElementById("createName").value,
+        price: document.getElementById("createPrice").value,
+        taxPercentage: document.getElementById("createTax").value
+    };
+
+    const response = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Producto creado correctamente");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+};
+
+/* ---------- EDITAR PRODUCTO ---------- */
+document.getElementById("editProductForm").onsubmit = async (e) => {
+
+    e.preventDefault();
+
+    const id = document.getElementById("editProductId").value;
+
+    const data = {
+        name: document.getElementById("editName").value,
+        price: document.getElementById("editPrice").value,
+        taxPercentage: document.getElementById("editTax").value
+    };
+
+    const response = await fetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Producto actualizado");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+};
+
+/* ---------- DESACTIVAR ---------- */
+async function disableProduct(id) {
+
+    if (!confirm("¿Deseas desactivar este producto?")) return;
+
+    const response = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Producto desactivado");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+}
+
+</script>
+
+</body>
+</html>

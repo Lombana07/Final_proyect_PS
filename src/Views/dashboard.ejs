@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - FacturaX</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <%- include('partials/sidebar') %>
+
+    <main>
+        <div class="header">
+            <h2>Dashboard</h2>
+            <div class="user-badge">Administrador</div>
+        </div>
+
+        <!-- Tarjetas de Resumen basadas en tu imagen -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Facturas emitidas</h3>
+                <div class="value">0</div>
+                <small style="color: var(--text-muted)">este mes</small>
+            </div>
+            <div class="stat-card">
+                <h3>Total ventas</h3>
+                <div class="value">$0</h3>
+                <small style="color: var(--text-muted)">COP este mes</small>
+            </div>
+            <div class="stat-card">
+                <h3>IVA generado</h3>
+                <div class="value">$0</div>
+                <small style="color: var(--text-muted)">pendiente declarar</small>
+            </div>
+            <div class="stat-card">
+                <h3>Clientes activos</h3>
+                <div class="value">0</div>
+                <small style="color: var(--text-muted)">registrados</small>
+            </div>
+        </div>
+
+        <!-- Secciones de Visualización Inferiores -->
+        <div class="main-grid">
+            <div class="stat-card" style="min-height: 250px;">
+                <h3>Ventas por mes</h3>
+                <!-- Aquí se integraría la trazabilidad histórica requerida [2] -->
+            </div>
+            <div class="stat-card" style="min-height: 250px;">
+                <h3>Últimas facturas</h3>
+                <!-- Listado rápido de las facturas generadas automáticamente [3] -->
+            </div>
+        </div>
+    </main>
+</body>
+</html>

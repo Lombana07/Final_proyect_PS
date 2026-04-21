@@ -4,7 +4,9 @@
   "description": "Final proyect in my class software testing",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "ejs": "^5.0.2",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
@@ -31,7 +34,10 @@
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
     "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
   }
 }

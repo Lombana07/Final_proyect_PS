@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - FacturaX</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<main>
+    <div class="header">
+        <h2>Gestión de Clientes</h2>
+        <button class="btn-primary" onclick="openCreateModal()">+ Nuevo Cliente</button>
+    </div>
+
+    <div class="stat-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tipo Doc.</th>
+                    <th>Nro Documento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% customers.forEach(customer => { %>
+                <tr>
+                    <td><%= customer.id %></td>
+                    <td><%= customer.name %></td>
+                    <td><%= customer.documentType %></td>
+                    <td><%= customer.documentNumber %></td>
+                    <td>
+
+                        <button class="btn-edit"
+                        onclick="openEditModal(
+                        '<%= customer.id %>',
+                        '<%= customer.name %>',
+                        '<%= customer.documentType %>',
+                        '<%= customer.documentNumber %>'
+                        )">
+                        Editar
+                        </button>
+
+                        <button class="btn-delete"
+                        onclick="disableCustomer('<%= customer.id %>')">
+                        Desactivar
+                        </button>
+
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- MODAL CREAR -->
+<div id="createCustomerModal" class="modal" style="display:none;">
+    <div class="modal-content stat-card">
+
+        <div class="header">
+            <h3>Registrar Nuevo Cliente</h3>
+            <button class="btn-delete" onclick="closeModal('createCustomerModal')">X</button>
+        </div>
+
+        <form id="createCustomerForm">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="createName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Tipo Documento</label>
+                <input type="text" id="createDocumentType" required>
+            </div>
+
+            <div class="form-group">
+                <label>Número Documento</label>
+                <input type="text" id="createDocumentNumber" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width:100%; margin-top:15px;">
+                Guardar Cliente
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="editCustomerModal" class="modal" style="display:none;">
+    <div class="modal-content stat-card">
+
+        <div class="header">
+            <h3>Actualizar Cliente</h3>
+            <button class="btn-delete" onclick="closeModal('editCustomerModal')">X</button>
+        </div>
+
+        <form id="editCustomerForm">
+
+            <input type="hidden" id="editCustomerId">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="editName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Tipo Documento</label>
+                <input type="text" id="editDocumentType" required>
+            </div>
+
+            <div class="form-group">
+                <label>Número Documento</label>
+                <input type="text" id="editDocumentNumber" required>
+            </div>
+
+            <button type="submit"
+            class="btn-primary"
+            style="width:100%; margin-top:15px; background:#ffc107; color:black;">
+                Actualizar Cliente
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<script>
+
+const token = localStorage.getItem('token');
+
+/* ---------- VALIDAR TOKEN ---------- */
+if (!token) {
+    alert("Debes iniciar sesión");
+    window.location.href = "/";
+}
+
+/* ---------- ABRIR MODAL CREAR ---------- */
+function openCreateModal() {
+    document.getElementById("createCustomerModal").style.display = "flex";
+}
+
+/* ---------- ABRIR MODAL EDITAR ---------- */
+function openEditModal(id, name, documentType, documentNumber) {
+
+    document.getElementById("editCustomerId").value = id;
+    document.getElementById("editName").value = name;
+    document.getElementById("editDocumentType").value = documentType;
+    document.getElementById("editDocumentNumber").value = documentNumber;
+
+    document.getElementById("editCustomerModal").style.display = "flex";
+}
+
+/* ---------- CERRAR MODAL ---------- */
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+/* ---------- CREAR CLIENTE ---------- */
+document.getElementById("createCustomerForm").onsubmit = async (e) => {
+
+    e.preventDefault();
+
+    const data = {
+        name: document.getElementById("createName").value,
+        documentType: document.getElementById("createDocumentType").value,
+        documentNumber: document.getElementById("createDocumentNumber").value
+    };
+
+    const response = await fetch("/api/customers", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Cliente creado correctamente");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+};
+
+/* ---------- EDITAR CLIENTE ---------- */
+document.getElementById("editCustomerForm").onsubmit = async (e) => {
+
+    e.preventDefault();
+
+    const id = document.getElementById("editCustomerId").value;
+
+    const data = {
+        name: document.getElementById("editName").value,
+        documentType: document.getElementById("editDocumentType").value,
+        documentNumber: document.getElementById("editDocumentNumber").value
+    };
+
+    const response = await fetch(`/api/customers/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Cliente actualizado");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+};
+
+/* ---------- DESACTIVAR ---------- */
+async function disableCustomer(id) {
+
+    if (!confirm("¿Deseas desactivar este cliente?")) return;
+
+    const response = await fetch(`/api/customers/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Cliente desactivado");
+        location.reload();
+    } else {
+        alert(result.message);
+    }
+}
+
+</script>
+
+</body>
+</html>

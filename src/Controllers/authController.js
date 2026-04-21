@@ -6,21 +6,18 @@ exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 🔍 buscar usuario
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // 🔐 comparar contraseña
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    // 🎟️ generar token
     const token = jwt.sign(
       {
         id: user.id,

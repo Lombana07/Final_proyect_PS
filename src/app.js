@@ -1,47 +1,62 @@
 require('dotenv').config();
 const express = require('express');
-const { sequelize } = require('./Models');
+const path = require('path');
+const { sequelize, Customer, Product } = require('./Models');
 
 const customerRoutes = require('./Routes/CustomerRoutes');
 const authRoutes = require('./Routes/authRoutes');
-
-const app = express(); // ✅ PRIMERO
-
-// 🔥 MIDDLEWARES
-app.use(express.json());
-
-// 🔥 RUTAS
-app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-
-// 🚀 SERVIDOR
+const productRoutes = require('./Routes/ProductRoutes');
 const userRoutes = require('./Routes/UserRoutes');
 
 const app = express();
 
-// 🔥 PRIMERO LOS MIDDLEWARES
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 🔥 LUEGO LAS RUTAS
-app.use('/api/users', userRoutes);
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'Views'));
+
+app.use(express.static(path.join(__dirname, 'Public')));
+
+app.get('/', (req, res) => {
+    res.render('login'); 
+});
+
+app.get('/dashboard', (req, res) => {
+    res.render('dashboard');
+});
+// Ruta para Clientes
+app.get('/customers', async (req, res) => {
+    const customers = await Customer.findAll({ where: { isActive: true } });
+    res.render('customers', { customers });
+});
+
+// Ruta para Productos
+app.get('/products', async (req, res) => {
+    const products = await Product.findAll({ where: { isActive: true } });
+    res.render('products', { products });
+});
+app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
 
-// 🚀 INICIO DEL SERVIDOR
 async function startServer() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ DB conectada');
+    try {
+        await sequelize.authenticate();
+        await sequelize.sync({ alter: true });
 
-    await sequelize.sync({ alter: true });
-    console.log('✅ Tablas sincronizadas');
+        console.log('✅ DB conectada');
 
-    app.listen(process.env.PORT || 3000, () => {
-      console.log('🚀 Servidor corriendo en puerto 3000');
-    });
+        const PORT = process.env.PORT || 3000;
 
-  } catch (error) {
-    console.error('❌ Error al iniciar:', error);
-  }
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor en http://localhost:${PORT}`);
+        });
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
 }
 
 startServer();
