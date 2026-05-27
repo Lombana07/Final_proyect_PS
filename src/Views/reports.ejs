@@ -67,6 +67,7 @@
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Total</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -100,24 +101,74 @@
             }
     }
 
-    // Función para renderizar las tablas en el HTML
-    function renderTables(data) {
-        document.getElementById('resultsArea').style.display = 'block';
+    async function sendByEmail() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
 
-        // Resumen DIAN
+        if (!start || !end) return alert("Primero selecciona las fechas del reporte");
+
+        const email = prompt("Ingresa el correo del administrador o auditor:");
+        if (!email) return;
+
+        try {
+            const res = await fetch('/api/invoices/reports/send-email', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token') 
+                },
+                body: JSON.stringify({ startDate: start, endDate: end, email: email })
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                alert("Reporte enviado con éxito a " + email);
+            } else {
+                alert("Error: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error enviando email:", error);
+            alert("No se pudo conectar con el servidor de correo.");
+        }
+    }
+
+        // Función para renderizar las tablas en el HTML
+    function renderTables(data) {
+    
+        document.getElementById('resultsArea').style.display = 'block';
+    
+        // TABLA FACTURAS
+        const invBody = document.querySelector('#invoiceTable tbody');
+    
+        invBody.innerHTML = data.invoices.map(inv => `
+            <tr>
+                <td>INV-${inv.id}</td>
+                <td>${new Date(inv.date).toLocaleDateString()}</td>
+                <td>${inv.Customer ? inv.Customer.name : 'Cliente Eliminado'}</td>
+                <td>$${parseFloat(inv.total).toLocaleString()}</td>
+                <td><span class="tag">${inv.status}</span></td>
+            </tr>
+        `).join('');
+        
+        // TABLA IMPUESTOS
         const taxBody = document.querySelector('#taxTable tbody');
+        
         taxBody.innerHTML = Object.entries(data.taxSummary).map(([name, info]) => `
             <tr>
                 <td>${name}</td>
-                <td>$${info.totalSales.toLocaleString()}</td>
+                <td>$${parseFloat(info.totalSales).toLocaleString()}</td>
                 <td>${info.taxRate}%</td>
-                <td>$${info.totalTax.toLocaleString()}</td>
-                <td>${info.currentStatus}</td>
+                <td>$${parseFloat(info.totalTax).toLocaleString()}</td>
+                <td>
+                    <span class="tag">
+                        ${info.currentStatus}
+                    </span>
+                </td>
             </tr>
         `).join('');
     }
-
-    // Función para convertir JSON a CSV y descargar (Requerimiento [1])
+    
+        // Función para convertir JSON a CSV y descargar (Requerimiento [1])
     function downloadCSV(data, start, end) {
         let csvContent = "data:text/csv;charset=utf-8,";
 

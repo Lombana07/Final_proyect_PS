@@ -2,30 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Clientes - FacturaX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes — FacturaX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .section-header { margin: 40px 0 20px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
-        .section-header hr { flex: 1; border: 0; border-top: 1px solid var(--border); }
-        .table-inactive { opacity: 0.7; }
-        .status-pill { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-        .status-active { background: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid #0d6efd; }
-        .status-disabled { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
-    </style>
+    <link rel="stylesheet" href="/css/customers.css">
 </head>
 <body>
-    <%- include('partials/sidebar') %> <!-- [3] -->
 
-    <main>
-        <div class="header">
-            <h2>Gestión de Clientes</h2>
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+
+        <!-- ── Header ── -->
+        <div class="customers-header">
+            <h2>
+                <span>Administrar</span>
+                Gestión de Clientes
+            </h2>
             <button class="btn-primary" onclick="openModal()">+ Nuevo Cliente</button>
         </div>
 
-        <!-- TABLA 1: CLIENTES ACTIVOS -->
-        <div class="stat-card"> <!-- [4] -->
-            <h3>Clientes Activos</h3>
-            <table class="data-table"> <!-- [5] -->
+        <!-- ── Stats rápidas ── -->
+        <div class="customers-stats">
+            <div class="cstat cstat--total">
+                <div class="cstat__icon">🧾</div>
+                <div>
+                    <div class="cstat__label">Total clientes</div>
+                    <div class="cstat__val"><%= activeCustomers.length + inactiveCustomers.length %></div>
+                </div>
+            </div>
+            <div class="cstat cstat--active">
+                <div class="cstat__icon">✅</div>
+                <div>
+                    <div class="cstat__label">Activos</div>
+                    <div class="cstat__val"><%= activeCustomers.length %></div>
+                </div>
+            </div>
+            <div class="cstat cstat--inactive">
+                <div class="cstat__icon">🚫</div>
+                <div>
+                    <div class="cstat__label">Inhabilitados</div>
+                    <div class="cstat__val"><%= inactiveCustomers.length %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tabla clientes activos ── -->
+        <div class="customers-panel">
+            <div class="customers-panel__head">
+                <span class="customers-panel__title">Clientes Activos</span>
+                <span class="customers-panel__count"><%= activeCustomers.length %> registros</span>
+            </div>
+            <table class="customers-table">
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -35,29 +66,50 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% activeCustomers.forEach(c => { %> <!-- [1] -->
+                    <% activeCustomers.forEach(c => { %>
                     <tr>
-                        <td><%= c.name %></td>
-                        <td><%= c.documentType %>: <%= c.documentNumber %></td>
-                        <td><span class="status-pill status-active">ACTIVO</span></td>
                         <td>
-                            <button class="btn-edit" onclick="editCustomer('<%= c.id %>')">Editar</button>
-                            <button class="btn-delete" onclick="disableCustomer('<%= c.id %>')">Desactivar</button>
+                            <div class="customer-name-cell">
+                                <div class="customer-avatar">
+                                    <%= c.name.trim().split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() %>
+                                </div>
+                                <span><%= c.name %></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="doc-type"><%= c.documentType %></span>
+                            <span class="doc-number"><%= c.documentNumber %></span>
+                        </td>
+                        <td><span class="pill pill--active">Activo</span></td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-edit" onclick="editCustomer('<%= c.id %>')">Editar</button>
+                                <button class="btn-delete" onclick="disableCustomer('<%= c.id %>')">Inhabilitar</button>
+                            </div>
                         </td>
                     </tr>
                     <% }) %>
+                    <% if (activeCustomers.length === 0) { %>
+                    <tr>
+                        <td colspan="4" style="text-align:center; padding: 32px; color: var(--text-faint); font-size: 13px;">
+                            No hay clientes activos
+                        </td>
+                    </tr>
+                    <% } %>
                 </tbody>
             </table>
         </div>
 
-        <!-- SEPARADOR Y TABLA 2: CLIENTES INHABILITADOS -->
-        <div class="section-header">
-            <h4>Clientes Inhabilitados</h4>
-            <hr>
+        <!-- ── Separador + tabla inhabilitados ── -->
+        <% if (inactiveCustomers.length > 0) { %>
+        <div class="customers-divider">
+            <span class="customers-divider__label">Historial de Clientes Inhabilitados</span>
+            <div class="customers-divider__line"></div>
+            <span class="customers-panel__count"><%= inactiveCustomers.length %></span>
         </div>
 
-        <div class="stat-card table-inactive">
-            <table class="data-table">
+        <div class="customers-panel customers-panel--inactive">
+            <table class="customers-table">
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -67,13 +119,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% inactiveCustomers.forEach(c => { %> <!-- [1] -->
+                    <% inactiveCustomers.forEach(c => { %>
                     <tr>
-                        <td><%= c.name %></td>
-                        <td><%= c.documentType %>: <%= c.documentNumber %></td>
-                        <td><span class="status-pill status-disabled">INACTIVO</span></td>
                         <td>
-                            <!-- Solo el ADMIN puede reactivar según requerimientos -->
+                            <div class="customer-name-cell">
+                                <div class="customer-avatar" style="background: rgba(248,113,113,0.08); color: #f87171;">
+                                    <%= c.name.trim().split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() %>
+                                </div>
+                                <span style="color: var(--text-muted)"><%= c.name %></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="doc-type" style="opacity: 0.6"><%= c.documentType %></span>
+                            <span class="doc-number"><%= c.documentNumber %></span>
+                        </td>
+                        <td><span class="pill pill--inactive">Inactivo</span></td>
+                        <td>
                             <button class="btn-primary" onclick="activateCustomer('<%= c.id %>')">Reactivar</button>
                         </td>
                     </tr>
@@ -81,30 +142,177 @@
                 </tbody>
             </table>
         </div>
+        <% } %>
+
     </main>
 
+    <!-- ── Modal nuevo cliente ── -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <div class="modal__header">
+                <div>
+                    <div class="modal__title">Nuevo Cliente</div>
+                    <div class="modal__sub">Complete los datos del cliente</div>
+                </div>
+                <button class="modal__close" onclick="closeModal()">✕</button>
+            </div>
+
+            <form id="customerForm" onsubmit="submitCustomer(event)">
+                <div class="form-group">
+                    <label>Nombre / Razón social</label>
+                    <input class="form-input" type="text" name="name" placeholder="Ej: Inversiones Meridiano S.A.S." required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo de documento</label>
+                        <select class="form-select" name="documentType" required>
+                            <option value="">Seleccionar</option>
+                            <option value="NIT">NIT</option>
+                            <option value="CC">C.C.</option>
+                            <option value="CE">C.E.</option>
+                            <option value="PAS">Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Número de documento</label>
+                        <input class="form-input" type="text" name="documentNumber" placeholder="900.123.456-7" required>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Función para desactivar (Llama a tu CustomerController.disable) [6]
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.getElementById('customerForm').reset();
+        }
+
+        function closeModalOutside(e) {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        }
+
+        async function submitCustomer(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            const res = await fetch('/api/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) { closeModal(); location.reload(); }
+            else alert('Error al guardar el cliente');
+        }
+
         async function disableCustomer(id) {
-            if(!confirm('¿Seguro que desea desactivar este cliente?')) return;
+            if (!confirm('¿Seguro que desea inhabilitar este cliente?')) return;
             const res = await fetch(`/api/customers/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
             });
-            if(res.ok) location.reload();
-            else alert('Error al desactivar');
+            if (res.ok) location.reload();
+            else alert('Error al inhabilitar el cliente');
         }
 
-        // Nueva función para reactivar (Llama a la ruta PUT que creamos)
         async function activateCustomer(id) {
-            if(!confirm('¿Desea reactivar este cliente para que pueda volver a ser facturado?')) return;
+            if (!confirm('¿Desea reactivar este cliente?')) return;
             const res = await fetch(`/api/customers/${id}/activate`, {
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
             });
-            if(res.ok) location.reload();
-            else alert('Error al reactivar cliente');
+            if (res.ok) location.reload();
+            else alert('Error al reactivar el cliente');
+        }
+
+        async function editCustomer(id) {
+            const res = await fetch(`/api/customers/${id}`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            if (!res.ok) return alert('Error al cargar el cliente');
+            const c = await res.json();
+
+            document.getElementById('edit-id').textContent          = '#' + c.id;
+            document.getElementById('edit-name').value              = c.name;
+            document.getElementById('edit-documentType').value      = c.documentType;
+            document.getElementById('edit-documentNumber').value    = c.documentNumber;
+            document.getElementById('editForm').dataset.id          = c.id;
+
+            document.getElementById('editDrawer').classList.add('open');
+            document.getElementById('drawerBackdrop').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('editDrawer').classList.remove('open');
+            document.getElementById('drawerBackdrop').classList.remove('open');
+        }
+
+        async function submitEdit(e) {
+            e.preventDefault();
+            const id   = e.target.dataset.id;
+            const data = Object.fromEntries(new FormData(e.target));
+            const res  = await fetch(`/api/customers/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) { closeDrawer(); location.reload(); }
+            else alert('Error al guardar los cambios');
         }
     </script>
+
+    <!-- ── Backdrop ── -->
+    <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+    <!-- ── Drawer edición ── -->
+    <div class="edit-drawer" id="editDrawer">
+        <div class="edit-drawer__header">
+            <div>
+                <div class="edit-drawer__title">Editar Cliente</div>
+                <div class="edit-drawer__sub" id="edit-id"></div>
+            </div>
+            <button class="modal__close" onclick="closeDrawer()">✕</button>
+        </div>
+
+        <form id="editForm" onsubmit="submitEdit(event)">
+            <div class="form-group">
+                <label>Nombre / Razón social</label>
+                <input class="form-input" type="text" id="edit-name" name="name" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de documento</label>
+                    <select class="form-select" id="edit-documentType" name="documentType" required>
+                        <option value="NIT">NIT</option>
+                        <option value="CC">C.C.</option>
+                        <option value="CE">C.E.</option>
+                        <option value="PAS">Pasaporte</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Número de documento</label>
+                    <input class="form-input" type="text" id="edit-documentNumber" name="documentNumber" required>
+                </div>
+            </div>
+            <div class="edit-drawer__footer">
+                <button type="button" class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+
 </body>
 </html>

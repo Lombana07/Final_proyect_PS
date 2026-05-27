@@ -1,17 +1,17 @@
 /* =========================================================
-   FacturaX — invoice.css
+   FacturaX — products.css
    Extiende dashboard.css
    ========================================================= */
 
 /* ── Page Header ── */
-.invoices-header {
+.products-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
 }
 
-.invoices-header h2 {
+.products-header h2 {
     font-size: 26px;
     font-weight: 600;
     letter-spacing: -0.04em;
@@ -19,7 +19,7 @@
     line-height: 1;
 }
 
-.invoices-header h2 span {
+.products-header h2 span {
     display: block;
     font-size: 11px;
     font-weight: 400;
@@ -30,14 +30,14 @@
 }
 
 /* ── Stats rápidas ── */
-.invoices-stats {
+.products-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     margin-bottom: 24px;
 }
 
-.istat {
+.pstat {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -47,7 +47,7 @@
     gap: 14px;
 }
 
-.istat__icon {
+.pstat__icon {
     width: 38px;
     height: 38px;
     border-radius: var(--radius-md);
@@ -58,11 +58,11 @@
     flex-shrink: 0;
 }
 
-.istat--total      .istat__icon { background: rgba(79, 142, 247, 0.1); }
-.istat--issued     .istat__icon { background: rgba(52, 211, 153, 0.1); }
-.istat--cancelled  .istat__icon { background: rgba(248, 113, 113, 0.1); }
+.pstat--total    .pstat__icon { background: rgba(79, 142, 247, 0.1); }
+.pstat--active   .pstat__icon { background: rgba(52, 211, 153, 0.1); }
+.pstat--inactive .pstat__icon { background: rgba(248, 113, 113, 0.1); }
 
-.istat__label {
+.pstat__label {
     font-size: 10px;
     color: var(--text-faint);
     text-transform: uppercase;
@@ -70,18 +70,18 @@
     margin-bottom: 4px;
 }
 
-.istat__val {
+.pstat__val {
     font-family: var(--mono);
     font-size: 20px;
     font-weight: 500;
     color: var(--text);
 }
 
-.istat--issued     .istat__val { color: var(--accent-green); }
-.istat--cancelled  .istat__val { color: #f87171; }
+.pstat--active   .pstat__val { color: var(--accent-green); }
+.pstat--inactive .pstat__val { color: #f87171; }
 
 /* ── Panel tabla ── */
-.invoices-panel {
+.products-panel {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -89,20 +89,20 @@
     margin-bottom: 16px;
 }
 
-.invoices-panel__head {
+.products-panel__head {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
 }
 
-.invoices-panel__title {
+.products-panel__title {
     font-size: 14px;
     font-weight: 500;
     color: var(--text);
 }
 
-.invoices-panel__count {
+.products-panel__count {
     font-size: 11px;
     color: var(--text-faint);
     background: rgba(255, 255, 255, 0.06);
@@ -111,15 +111,15 @@
     font-family: var(--mono);
 }
 
-/* Separador anuladas */
-.invoices-divider {
+/* Separador inactivos */
+.products-divider {
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 28px 0 16px;
 }
 
-.invoices-divider__label {
+.products-divider__label {
     font-size: 11px;
     color: var(--text-faint);
     text-transform: uppercase;
@@ -127,26 +127,26 @@
     white-space: nowrap;
 }
 
-.invoices-divider__line {
+.products-divider__line {
     flex: 1;
     height: 1px;
     background: var(--border);
 }
 
-.invoices-panel--cancelled {
+.products-panel--inactive {
     opacity: 0.72;
     transition: opacity 0.2s;
 }
 
-.invoices-panel--cancelled:hover { opacity: 1; }
+.products-panel--inactive:hover { opacity: 1; }
 
-/* ── Tabla facturas ── */
-.invoices-table {
+/* ── Tabla productos ── */
+.products-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.invoices-table th {
+.products-table th {
     font-size: 10px;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -157,7 +157,7 @@
     font-weight: 400;
 }
 
-.invoices-table td {
+.products-table td {
     padding: 12px 12px 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     font-size: 13px;
@@ -165,73 +165,46 @@
     vertical-align: middle;
 }
 
-.invoices-table tr:last-child td { border-bottom: none; }
+.products-table tr:last-child td { border-bottom: none; }
 
-.invoices-table tr { transition: background 0.12s; }
-.invoices-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.products-table tr { transition: background 0.12s; }
+.products-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-/* Celda ID */
-.invoice-id {
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--accent-blue);
-    background: rgba(79, 142, 247, 0.08);
-    padding: 3px 8px;
-    border-radius: 5px;
-    border: 1px solid rgba(79, 142, 247, 0.15);
-}
-
-/* Celda cliente */
-.invoice-customer-cell {
+/* Celda nombre con ícono */
+.product-name-cell {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.invoice-customer-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(167, 139, 250, 0.12);
-    color: var(--accent-purple);
-    font-size: 10px;
-    font-weight: 600;
+.product-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: rgba(79, 142, 247, 0.1);
+    color: var(--accent-blue);
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-family: var(--mono);
 }
 
-.invoice-customer-cell span {
+.product-name-cell span {
     font-weight: 500;
     color: var(--text);
 }
 
-/* Celda fecha */
-.invoice-date {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-}
-
-/* Celda totales */
-.invoice-subtotal {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-}
-
-.invoice-total {
+/* Precio */
+.price-cell {
     font-family: var(--mono);
     font-size: 13px;
     font-weight: 500;
     color: var(--accent-green) !important;
 }
 
-/* Celda IVA */
-.invoice-tax {
+/* IVA badge */
+.tax-badge {
     font-family: var(--mono);
     font-size: 11px;
     background: rgba(245, 158, 11, 0.1);
@@ -255,13 +228,13 @@
     text-transform: uppercase;
 }
 
-.pill--issued {
+.pill--active {
     background: rgba(52, 211, 153, 0.1);
     color: var(--accent-green);
     border: 1px solid rgba(52, 211, 153, 0.2);
 }
 
-.pill--cancelled {
+.pill--inactive {
     background: rgba(248, 113, 113, 0.1);
     color: #f87171;
     border: 1px solid rgba(248, 113, 113, 0.2);
@@ -281,7 +254,7 @@
     align-items: center;
 }
 
-/* ── Modal nueva factura ── */
+/* ── Modal ── */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -301,9 +274,7 @@
     border-radius: var(--radius-xl);
     padding: 28px 32px;
     width: 100%;
-    max-width: 560px;
-    max-height: 88vh;
-    overflow-y: auto;
+    max-width: 460px;
     animation: modalIn 0.2s ease;
 }
 
@@ -333,7 +304,7 @@
 }
 
 .modal__close {
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255,255,255,0.07);
     border: none;
     color: var(--text-muted);
     width: 28px;
@@ -345,23 +316,10 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s;
-    flex-shrink: 0;
 }
 
-.modal__close:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); }
+.modal__close:hover { background: rgba(255,255,255,0.12); color: var(--text); }
 
-/* Sección dentro del modal */
-.modal__section-title {
-    font-size: 11px;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 20px 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-}
-
-/* Formulario */
 .form-group {
     margin-bottom: 15px;
 }
@@ -387,7 +345,6 @@
     font-size: 13px;
     outline: none;
     transition: border-color 0.15s, background 0.15s;
-    box-sizing: border-box;
 }
 
 .form-input:focus,
@@ -415,89 +372,24 @@
     gap: 12px;
 }
 
-/* Fila agregar producto */
-.item-add-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: 10px;
-    align-items: flex-end;
-    margin-bottom: 14px;
+/* Input con prefijo $ */
+.input-prefix-wrap {
+    position: relative;
 }
 
-/* Tabla de ítems dentro del modal */
-.items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
-}
-
-.items-table th {
-    font-size: 10px;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+.input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
     color: var(--text-faint);
-    padding: 0 10px 10px 0;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    font-weight: 400;
-}
-
-.items-table td {
-    padding: 10px 10px 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.65);
-    vertical-align: middle;
-}
-
-.items-table tr:last-child td { border-bottom: none; }
-
-.items-table .col-price,
-.items-table .col-subtotal {
     font-family: var(--mono);
-    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
 }
 
-.items-table .col-subtotal {
-    color: var(--accent-green);
-    font-weight: 500;
-}
-
-/* Resumen de totales */
-.invoice-summary {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    margin-top: 4px;
-}
-
-.invoice-summary__row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--text-faint);
-    margin-bottom: 6px;
-}
-
-.invoice-summary__row:last-child {
-    margin-bottom: 0;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.invoice-summary__row span:last-child {
-    font-family: var(--mono);
-    font-weight: 500;
-}
-
-.invoice-summary__row:last-child span:last-child {
-    color: var(--accent-green);
-    font-size: 16px;
+.input-prefix-wrap .form-input {
+    padding-left: 24px;
 }
 
 .modal__footer {
@@ -521,4 +413,65 @@
     transition: background 0.15s;
 }
 
-.btn-cancel:hover { background: rgba(255, 255, 255, 0.05); }
+.btn-cancel:hover { background: rgba(255,255,255,0.05); }
+
+/* ── Drawer edición lateral ── */
+.drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 90;
+}
+
+.drawer-backdrop.open { display: block; }
+
+.edit-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100vh;
+    background: #1a1a1e;
+    border-left: 1px solid var(--border-md);
+    z-index: 100;
+    padding: 28px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+.edit-drawer.open { right: 0; }
+
+.edit-drawer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.edit-drawer__title {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.edit-drawer__sub {
+    font-size: 12px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+    margin-top: 3px;
+}
+
+.edit-drawer__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}

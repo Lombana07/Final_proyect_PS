@@ -3,35 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos - FacturaX</title>
+    <title>Productos — FacturaX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .section-header { margin: 40px 0 20px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
-        .section-header hr { flex: 1; border: 0; border-top: 1px solid var(--border); }
-        .table-inactive { opacity: 0.7; }
-        .status-pill { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-        .status-active { background: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid #0d6efd; }
-        .status-disabled { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
-    </style>
+    <link rel="stylesheet" href="/css/product.css">
 </head>
 <body>
+
     <%- include('partials/sidebar') %>
 
-    <main>
-        <div class="header">
-            <h2>Gestión de Productos</h2>
+    <main class="main-content">
+
+        <!-- ── Header ── -->
+        <div class="products-header">
+            <h2>
+                <span>Administrar</span>
+                Gestión de Productos
+            </h2>
             <button class="btn-primary" onclick="openModal()">+ Nuevo Producto</button>
         </div>
 
-        <!-- TABLA 1: PRODUCTOS ACTIVOS -->
-        <div class="stat-card">
-            <h3>Productos Disponibles</h3>
-            <table class="data-table">
+        <!-- ── Stats rápidas ── -->
+        <div class="products-stats">
+            <div class="pstat pstat--total">
+                <div class="pstat__icon">📦</div>
+                <div>
+                    <div class="pstat__label">Total productos</div>
+                    <div class="pstat__val"><%= activeProducts.length + inactiveProducts.length %></div>
+                </div>
+            </div>
+            <div class="pstat pstat--active">
+                <div class="pstat__icon">✅</div>
+                <div>
+                    <div class="pstat__label">Disponibles</div>
+                    <div class="pstat__val"><%= activeProducts.length %></div>
+                </div>
+            </div>
+            <div class="pstat pstat--inactive">
+                <div class="pstat__icon">🚫</div>
+                <div>
+                    <div class="pstat__label">Desactivados</div>
+                    <div class="pstat__val"><%= inactiveProducts.length %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tabla productos activos ── -->
+        <div class="products-panel">
+            <div class="products-panel__head">
+                <span class="products-panel__title">Productos Disponibles</span>
+                <span class="products-panel__count"><%= activeProducts.length %> registros</span>
+            </div>
+            <table class="products-table">
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Precio Unitario</th>
-                        <th>IVA (%)</th>
+                        <th>Precio unitario</th>
+                        <th>IVA</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -39,32 +69,48 @@
                 <tbody>
                     <% activeProducts.forEach(p => { %>
                     <tr>
-                        <td><%= p.name %></td>
-                        <td>$<%= parseFloat(p.price).toLocaleString() %></td>
-                        <td><%= p.taxPercentage %>%</td>
-                        <td><span class="status-pill status-active">ACTIVO</span></td>
                         <td>
-                            <button class="btn-edit" onclick="editProduct('<%= p.id %>')">Editar</button>
-                            <button class="btn-delete" onclick="disableProduct('<%= p.id %>')">Desactivar</button>
+                            <div class="product-name-cell">
+                                <div class="product-icon">📦</div>
+                                <span><%= p.name %></span>
+                            </div>
+                        </td>
+                        <td class="price-cell">$<%= parseFloat(p.price).toLocaleString('es-CO') %></td>
+                        <td><span class="tax-badge"><%= p.taxPercentage %>%</span></td>
+                        <td><span class="pill pill--active">Activo</span></td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-edit" onclick="editProduct('<%= p.id %>')">Editar</button>
+                                <button class="btn-delete" onclick="disableProduct('<%= p.id %>')">Desactivar</button>
+                            </div>
                         </td>
                     </tr>
                     <% }) %>
+                    <% if (activeProducts.length === 0) { %>
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 32px; color: var(--text-faint); font-size: 13px;">
+                            No hay productos disponibles
+                        </td>
+                    </tr>
+                    <% } %>
                 </tbody>
             </table>
         </div>
 
-        <!-- SEPARADOR Y TABLA 2: PRODUCTOS INHABILITADOS -->
-        <div class="section-header">
-            <h4>Historial de Productos Desactivados</h4>
-            <hr>
+        <!-- ── Separador + tabla inactivos ── -->
+        <% if (inactiveProducts.length > 0) { %>
+        <div class="products-divider">
+            <span class="products-divider__label">Historial de Productos Desactivados</span>
+            <div class="products-divider__line"></div>
+            <span class="products-panel__count"><%= inactiveProducts.length %></span>
         </div>
 
-        <div class="stat-card table-inactive">
-            <table class="data-table">
+        <div class="products-panel products-panel--inactive">
+            <table class="products-table">
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Último Precio</th>
+                        <th>Último precio</th>
                         <th>IVA</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -73,12 +119,18 @@
                 <tbody>
                     <% inactiveProducts.forEach(p => { %>
                     <tr>
-                        <td><%= p.name %></td>
-                        <td>$<%= parseFloat(p.price).toLocaleString() %></td>
-                        <td><%= p.taxPercentage %>%</td>
-                        <td><span class="status-pill status-disabled">INACTIVO</span></td>
                         <td>
-                            <!-- Solo el ADMIN puede reactivar -->
+                            <div class="product-name-cell">
+                                <div class="product-icon" style="background: rgba(248,113,113,0.08); color: #f87171;">📦</div>
+                                <span style="color: var(--text-muted)"><%= p.name %></span>
+                            </div>
+                        </td>
+                        <td class="price-cell" style="color: var(--text-faint) !important;">
+                            $<%= parseFloat(p.price).toLocaleString('es-CO') %>
+                        </td>
+                        <td><span class="tax-badge" style="opacity:0.5"><%= p.taxPercentage %>%</span></td>
+                        <td><span class="pill pill--inactive">Inactivo</span></td>
+                        <td>
                             <button class="btn-primary" onclick="activateProduct('<%= p.id %>')">Reactivar</button>
                         </td>
                     </tr>
@@ -86,30 +138,181 @@
                 </tbody>
             </table>
         </div>
+        <% } %>
+
     </main>
 
+    <!-- ── Modal nuevo producto ── -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <div class="modal__header">
+                <div>
+                    <div class="modal__title">Nuevo Producto</div>
+                    <div class="modal__sub">Complete los datos del producto</div>
+                </div>
+                <button class="modal__close" onclick="closeModal()">✕</button>
+            </div>
+
+            <form id="productForm" onsubmit="submitProduct(event)">
+                <div class="form-group">
+                    <label>Nombre del producto</label>
+                    <input class="form-input" type="text" name="name" placeholder="Ej: Servicio de consultoría" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio unitario</label>
+                        <div class="input-prefix-wrap">
+                            <span class="input-prefix">$</span>
+                            <input class="form-input" type="number" name="price" placeholder="0" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>IVA (%)</label>
+                        <select class="form-select" name="taxPercentage" required>
+                            <option value="">Seleccionar</option>
+                            <option value="0">0% — Excluido</option>
+                            <option value="5">5%</option>
+                            <option value="19">19% — General</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Función para desactivar (Lógica de desactivación lógica [2])
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.getElementById('productForm').reset();
+        }
+
+        function closeModalOutside(e) {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        }
+
+        async function submitProduct(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) { closeModal(); location.reload(); }
+            else alert('Error al guardar producto');
+        }
+
         async function disableProduct(id) {
-            if(!confirm('¿Seguro que desea desactivar este producto? Ya no aparecerá en la creación de facturas.')) return;
+            if (!confirm('¿Seguro que desea desactivar este producto? Ya no aparecerá en la creación de facturas.')) return;
             const res = await fetch(`/api/products/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
             });
-            if(res.ok) location.reload();
+            if (res.ok) location.reload();
             else alert('Error al desactivar el producto');
         }
 
-        // Función para reactivar (Llama a la nueva ruta PUT)
         async function activateProduct(id) {
-            if(!confirm('¿Desea reactivar este producto para la venta?')) return;
+            if (!confirm('¿Desea reactivar este producto para la venta?')) return;
             const res = await fetch(`/api/products/${id}/activate`, {
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
             });
-            if(res.ok) location.reload();
+            if (res.ok) location.reload();
             else alert('Error al reactivar el producto');
         }
+
+        async function editProduct(id) {
+            const res = await fetch(`/api/products/${id}`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            if (!res.ok) return alert('Error al cargar el producto');
+            const p = await res.json();
+
+            document.getElementById('edit-id').textContent    = '#' + p.id;
+            document.getElementById('edit-name').value        = p.name;
+            document.getElementById('edit-price').value       = parseFloat(p.price);
+            document.getElementById('edit-tax').value         = p.taxPercentage;
+            document.getElementById('editForm').dataset.id    = p.id;
+
+            document.getElementById('editDrawer').classList.add('open');
+            document.getElementById('drawerBackdrop').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('editDrawer').classList.remove('open');
+            document.getElementById('drawerBackdrop').classList.remove('open');
+        }
+
+        async function submitEdit(e) {
+            e.preventDefault();
+            const id   = e.target.dataset.id;
+            const data = Object.fromEntries(new FormData(e.target));
+            const res  = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) { closeDrawer(); location.reload(); }
+            else alert('Error al guardar los cambios');
+        }
     </script>
+
+    <!-- ── Backdrop ── -->
+    <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+    <!-- ── Drawer edición ── -->
+    <div class="edit-drawer" id="editDrawer">
+        <div class="edit-drawer__header">
+            <div>
+                <div class="edit-drawer__title">Editar Producto</div>
+                <div class="edit-drawer__sub" id="edit-id"></div>
+            </div>
+            <button class="modal__close" onclick="closeDrawer()">✕</button>
+        </div>
+
+        <form id="editForm" onsubmit="submitEdit(event)">
+            <div class="form-group">
+                <label>Nombre del producto</label>
+                <input class="form-input" type="text" id="edit-name" name="name" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio unitario</label>
+                    <div class="input-prefix-wrap">
+                        <span class="input-prefix">$</span>
+                        <input class="form-input" type="number" id="edit-price" name="price" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>IVA (%)</label>
+                    <select class="form-select" id="edit-tax" name="taxPercentage" required>
+                        <option value="0">0% — Excluido</option>
+                        <option value="5">5%</option>
+                        <option value="19">19% — General</option>
+                    </select>
+                </div>
+            </div>
+            <div class="edit-drawer__footer">
+                <button type="button" class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+
 </body>
 </html>

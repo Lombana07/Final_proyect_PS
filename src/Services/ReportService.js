@@ -16,7 +16,7 @@ exports.getTaxReportData = async (startDate, endDate) => {
             }
         ]
     });
-
+  
     // Procesamiento para la DIAN: Agrupar IVA y Ventas por Producto
     const taxSummary = {};
 
