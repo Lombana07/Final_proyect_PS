@@ -1,0 +1,61 @@
+const Product = require('../Models/Product');
+
+// 1. CREAR PRODUCTO (Corregido para que guarde en la BD)
+exports.createProduct = async (data) => {
+    const { name, price, taxPercentage } = data;
+    
+    // Validación básica de campos obligatorios según el modelo [3]
+    if (!name || !price || taxPercentage === undefined) {
+        throw new Error('Todos los campos (nombre, precio, IVA) son obligatorios');
+    }
+
+    // Se crea el registro en la tabla 'products'
+    return await Product.create({
+        name,
+        price,
+        taxPercentage,
+        isActive: true // Se asegura que inicie como activo [3]
+    });
+};
+
+// 2. CONSULTAR TODOS LOS PRODUCTOS (Solo los activos)
+exports.getProducts = async () => {
+    // Filtro para cumplir con la trazabilidad histórica [1, 4]
+    return await Product.findAll({ 
+        where: { isActive: true } 
+    });
+};
+
+// 3. CONSULTAR PRODUCTO POR ID
+exports.getProductById = async (id) => {
+    const product = await Product.findByPk(id);
+    // Verificamos existencia y que no esté desactivado [1]
+    if (!product || !product.isActive) {
+        throw new Error('Producto no encontrado o está inactivo');
+    }
+    return product;
+};
+
+// 4. ACTUALIZAR PRODUCTO
+exports.updateProduct = async (id, data) => {
+    const product = await Product.findByPk(id);
+    if (!product) throw new Error('Producto no encontrado');
+    
+    // Actualiza los campos enviados (precio, nombre o IVA) [4]
+    return await product.update(data);
+};
+
+// 5. DESACTIVAR PRODUCTO
+exports.disableProduct = async (id) => {
+    const product = await Product.findByPk(id);
+    if (!product) throw new Error('Producto no encontrado');
+
+    // No se borra de la BD, se cambia el estado para mantener reportes [2, 4]
+    return await product.update({ isActive: false });
+};
+
+exports.activateProduct = async (id) => {
+    const product = await Product.findByPk(id);
+    if (!product) throw new Error('Producto no encontrado');
+    return await product.update({ isActive: true });
+};

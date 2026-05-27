@@ -44,3 +44,12 @@ exports.disable = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+exports.activate = async (req, res) => {
+    try {
+        const result = await service.activateCustomer(req.params.id); 
+        res.json({ message: 'Cliente activado correctamente', result });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};

@@ -1,68 +1,66 @@
 const { Invoice, InvoiceDetail, Product, sequelize } = require('../Models');
 
 exports.createInvoice = async (data) => {
-    const { customerId, items } = data; // items es un array de { productId, quantity }
+    const { customerId, items } = data; 
 
-    // Usamos una transacción para asegurar que si falla el detalle, no se cree la factura
+    // Lanzamos todas las consultas de productos al mismo tiempo
+    const detallesCalculados = await Promise.all(items.map(async (item) => {
+        const product = await Product.findByPk(item.productId);
+        
+        if (!product || !product.isActive) {
+            throw new Error(`Producto ID ${item.productId} no disponible o inactivo`);
+        }
+
+        const price = parseFloat(product.price);
+        const quantity = parseInt(item.quantity);
+        const subtotalItem = price * quantity;
+        const taxItem = subtotalItem * (parseFloat(product.taxPercentage) / 100);
+
+        return {
+            productId: product.id,
+            quantity,
+            price,
+            tax: taxItem, // Nombre del campo en tu modelo InvoiceDetail [3]
+            subtotalItem
+        };
+    }));
+
+    // 2. CÁLCULO DE TOTALES (Suma de los resultados paralelos)
+    const subtotalFinal = detallesCalculados.reduce((acc, curr) => acc + curr.subtotalItem, 0);
+    const taxFinal = detallesCalculados.reduce((acc, curr) => acc + curr.tax, 0);
+
     const t = await sequelize.transaction();
 
     try {
-        let subtotalGeneral = 0;
-        let totalTaxGeneral = 0;
-
-        // 1. Procesar cada item para calcular subtotales e impuestos
-        const processedItems = await Promise.all(items.map(async (item) => {
-            const product = await Product.findByPk(item.productId);
-            if (!product || !product.isActive) throw new Error(`Producto ${item.productId} no encontrado`);
-
-            const price = parseFloat(product.price);
-            const subtotal = price * item.quantity;
-            const tax = subtotal * (parseFloat(product.taxPercentage) / 100);
-
-            subtotalGeneral += subtotal;
-            totalTaxGeneral += tax;
-
-            return {
-                productId: product.id,
-                quantity: item.quantity,
-                price: price,
-                tax: tax
-            };
-        }));
-
-        // 2. Crear la cabecera de la Factura
+        // 3. CREAR CABECERA (Con totales ya listos)
         const invoice = await Invoice.create({
             customerId,
-            subtotal: subtotalGeneral,
-            totalTax: totalTaxGeneral,
-            total: subtotalGeneral + totalTaxGeneral,
-            status: 'EMITIDA' // Por defecto al crear [4]
+            status: 'ISSUED', // Según tu ENUM en el modelo [4]
+            subtotal: subtotalFinal,
+            tax: taxFinal,
+            total: subtotalFinal + taxFinal
         }, { transaction: t });
 
-        // 3. Crear los detalles vinculados a esa factura [1]
-        const details = processedItems.map(item => ({
-            ...item,
+        // 4. INSERCIÓN MASIVA (bulkCreate) EFICIENCIA TOTAL
+        const detallesConId = detallesCalculados.map(d => ({
+            ...d,
             invoiceId: invoice.id
         }));
 
-        await InvoiceDetail.bulkCreate(details, { transaction: t });
+        await InvoiceDetail.bulkCreate(detallesConId, { transaction: t });
 
         await t.commit();
         return invoice;
+
     } catch (error) {
         await t.rollback();
         throw error;
     }
 };
 
-exports.getInvoiceById = async (id) => {
-    return await Invoice.findByPk(id, {
-        include: ['InvoiceDetails', 'Customer'] // Incluye los detalles y el cliente [2]
-    });
-};
-
+// Mantenemos la anulación corregida para tu ENUM
 exports.annulInvoice = async (id) => {
     const invoice = await Invoice.findByPk(id);
     if (!invoice) throw new Error('Factura no encontrada');
-    return await invoice.update({ status: 'ANULADA' }); [4]
+    return await invoice.update({ status: 'CANCELLED' }); // Compatible con tu modelo [4]
 };

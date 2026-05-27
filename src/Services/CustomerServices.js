@@ -45,3 +45,9 @@ exports.disableCustomer = async (id) => {
 
   return await customer.update({ isActive: false }); // ✅
 };
+
+exports.activateCustomer = async (id) => {
+    const customer = await Customer.findByPk(id);
+    if (!customer) throw new Error('Cliente no encontrado');
+    return await customer.update({ isActive: true });
+};

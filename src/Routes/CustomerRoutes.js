@@ -43,5 +43,11 @@ router.delete(
   checkRole('ADMIN'),
   controller.disable
 );
+// ACTIVATE → ADMIN ONLY
+router.put(
+  '/:id/activate',
+  verifyToken,
+  checkRole('ADMIN'),
+  controller.activate);
 
 module.exports = router;

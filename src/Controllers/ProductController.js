@@ -44,3 +44,13 @@ exports.disable = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+exports.activate = async (req, res) => {
+    try {
+        // Llamas a la función de activar producto
+        const result = await service.activateProduct(req.params.id); 
+        res.json({ message: 'Producto activado correctamente', result });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};

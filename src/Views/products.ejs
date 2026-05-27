@@ -5,249 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos - FacturaX</title>
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .section-header { margin: 40px 0 20px; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
+        .section-header hr { flex: 1; border: 0; border-top: 1px solid var(--border); }
+        .table-inactive { opacity: 0.7; }
+        .status-pill { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .status-active { background: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid #0d6efd; }
+        .status-disabled { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
+    </style>
 </head>
 <body>
+    <%- include('partials/sidebar') %>
 
-<%- include('partials/sidebar') %>
-
-<main>
-    <div class="header">
-        <h2>Gestión de Productos</h2>
-        <button class="btn-primary" onclick="openCreateModal()">+ Nuevo Producto</button>
-    </div>
-
-    <div class="stat-card">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Precio Unitario</th>
-                    <th>IVA (%)</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <% products.forEach(product => { %>
-                <tr>
-                    <td><%= product.id %></td>
-                    <td><%= product.name %></td>
-                    <td>$<%= product.price %></td>
-                    <td><%= product.taxPercentage %>%</td>
-                    <td>
-
-                        <button class="btn-edit"
-                        onclick="openEditModal(
-                        '<%= product.id %>',
-                        '<%= product.name %>',
-                        '<%= product.price %>',
-                        '<%= product.taxPercentage %>'
-                        )">
-                        Editar
-                        </button>
-
-                        <button class="btn-delete"
-                        onclick="disableProduct('<%= product.id %>')">
-                        Desactivar
-                        </button>
-
-                    </td>
-                </tr>
-                <% }) %>
-            </tbody>
-        </table>
-    </div>
-</main>
-
-<!-- MODAL CREAR -->
-<div id="createProductModal" class="modal" style="display:none;">
-    <div class="modal-content stat-card">
-
+    <main>
         <div class="header">
-            <h3>Registrar Nuevo Producto</h3>
-            <button class="btn-delete" onclick="closeModal('createProductModal')">X</button>
+            <h2>Gestión de Productos</h2>
+            <button class="btn-primary" onclick="openModal()">+ Nuevo Producto</button>
         </div>
 
-        <form id="createProductForm">
-
-            <div class="form-group">
-                <label>Nombre</label>
-                <input type="text" id="createName" required>
-            </div>
-
-            <div class="form-group">
-                <label>Precio Unitario</label>
-                <input type="number" id="createPrice" step="0.01" required>
-            </div>
-
-            <div class="form-group">
-                <label>IVA (%)</label>
-                <input type="number" id="createTax" step="0.01" required>
-            </div>
-
-            <button type="submit" class="btn-primary" style="width:100%; margin-top:15px;">
-                Guardar Producto
-            </button>
-
-        </form>
-    </div>
-</div>
-
-<!-- MODAL EDITAR -->
-<div id="editProductModal" class="modal" style="display:none;">
-    <div class="modal-content stat-card">
-
-        <div class="header">
-            <h3>Actualizar Producto</h3>
-            <button class="btn-delete" onclick="closeModal('editProductModal')">X</button>
+        <!-- TABLA 1: PRODUCTOS ACTIVOS -->
+        <div class="stat-card">
+            <h3>Productos Disponibles</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Precio Unitario</th>
+                        <th>IVA (%)</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% activeProducts.forEach(p => { %>
+                    <tr>
+                        <td><%= p.name %></td>
+                        <td>$<%= parseFloat(p.price).toLocaleString() %></td>
+                        <td><%= p.taxPercentage %>%</td>
+                        <td><span class="status-pill status-active">ACTIVO</span></td>
+                        <td>
+                            <button class="btn-edit" onclick="editProduct('<%= p.id %>')">Editar</button>
+                            <button class="btn-delete" onclick="disableProduct('<%= p.id %>')">Desactivar</button>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
         </div>
 
-        <form id="editProductForm">
+        <!-- SEPARADOR Y TABLA 2: PRODUCTOS INHABILITADOS -->
+        <div class="section-header">
+            <h4>Historial de Productos Desactivados</h4>
+            <hr>
+        </div>
 
-            <input type="hidden" id="editProductId">
+        <div class="stat-card table-inactive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Último Precio</th>
+                        <th>IVA</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% inactiveProducts.forEach(p => { %>
+                    <tr>
+                        <td><%= p.name %></td>
+                        <td>$<%= parseFloat(p.price).toLocaleString() %></td>
+                        <td><%= p.taxPercentage %>%</td>
+                        <td><span class="status-pill status-disabled">INACTIVO</span></td>
+                        <td>
+                            <!-- Solo el ADMIN puede reactivar -->
+                            <button class="btn-primary" onclick="activateProduct('<%= p.id %>')">Reactivar</button>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </main>
 
-            <div class="form-group">
-                <label>Nombre</label>
-                <input type="text" id="editName" required>
-            </div>
-
-            <div class="form-group">
-                <label>Precio Unitario</label>
-                <input type="number" id="editPrice" step="0.01" required>
-            </div>
-
-            <div class="form-group">
-                <label>IVA (%)</label>
-                <input type="number" id="editTax" step="0.01" required>
-            </div>
-
-            <button type="submit"
-            class="btn-primary"
-            style="width:100%; margin-top:15px; background:#ffc107; color:black;">
-                Actualizar Producto
-            </button>
-
-        </form>
-    </div>
-</div>
-
-<script>
-
-const token = localStorage.getItem('token');
-
-/* ---------- VALIDAR TOKEN ---------- */
-if (!token) {
-    alert("Debes iniciar sesión");
-    window.location.href = "/";
-}
-
-/* ---------- ABRIR MODAL CREAR ---------- */
-function openCreateModal() {
-    document.getElementById("createProductModal").style.display = "flex";
-}
-
-/* ---------- ABRIR MODAL EDITAR ---------- */
-function openEditModal(id, name, price, tax) {
-
-    document.getElementById("editProductId").value = id;
-    document.getElementById("editName").value = name;
-    document.getElementById("editPrice").value = price;
-    document.getElementById("editTax").value = tax;
-
-    document.getElementById("editProductModal").style.display = "flex";
-}
-
-/* ---------- CERRAR MODAL ---------- */
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = "none";
-}
-
-/* ---------- CREAR PRODUCTO ---------- */
-document.getElementById("createProductForm").onsubmit = async (e) => {
-
-    e.preventDefault();
-
-    const data = {
-        name: document.getElementById("createName").value,
-        price: document.getElementById("createPrice").value,
-        taxPercentage: document.getElementById("createTax").value
-    };
-
-    const response = await fetch("/api/products", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-        alert("Producto creado correctamente");
-        location.reload();
-    } else {
-        alert(result.message);
-    }
-};
-
-/* ---------- EDITAR PRODUCTO ---------- */
-document.getElementById("editProductForm").onsubmit = async (e) => {
-
-    e.preventDefault();
-
-    const id = document.getElementById("editProductId").value;
-
-    const data = {
-        name: document.getElementById("editName").value,
-        price: document.getElementById("editPrice").value,
-        taxPercentage: document.getElementById("editTax").value
-    };
-
-    const response = await fetch(`/api/products/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-        alert("Producto actualizado");
-        location.reload();
-    } else {
-        alert(result.message);
-    }
-};
-
-/* ---------- DESACTIVAR ---------- */
-async function disableProduct(id) {
-
-    if (!confirm("¿Deseas desactivar este producto?")) return;
-
-    const response = await fetch(`/api/products/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${token}`
+    <script>
+        // Función para desactivar (Lógica de desactivación lógica [2])
+        async function disableProduct(id) {
+            if(!confirm('¿Seguro que desea desactivar este producto? Ya no aparecerá en la creación de facturas.')) return;
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            if(res.ok) location.reload();
+            else alert('Error al desactivar el producto');
         }
-    });
 
-    const result = await response.json();
-
-    if (response.ok) {
-        alert("Producto desactivado");
-        location.reload();
-    } else {
-        alert(result.message);
-    }
-}
-
-</script>
-
+        // Función para reactivar (Llama a la nueva ruta PUT)
+        async function activateProduct(id) {
+            if(!confirm('¿Desea reactivar este producto para la venta?')) return;
+            const res = await fetch(`/api/products/${id}/activate`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            if(res.ok) location.reload();
+            else alert('Error al reactivar el producto');
+        }
+    </script>
 </body>
 </html>

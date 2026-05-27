@@ -18,26 +18,46 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Facturas emitidas</h3>
-                <div class="value">0</div>
+                <div class="value">$<%= totalSales ? totalSales.toLocaleString() : 0 %></div>
                 <small style="color: var(--text-muted)">este mes</small>
             </div>
             <div class="stat-card">
                 <h3>Total ventas</h3>
-                <div class="value">$0</h3>
+                <div class="value">$<%= totalSales ? totalSales.toLocaleString() : 0 %></div>
                 <small style="color: var(--text-muted)">COP este mes</small>
             </div>
             <div class="stat-card">
                 <h3>IVA generado</h3>
-                <div class="value">$0</div>
+                <div class="value">$<%= totalTax ? totalTax.toLocaleString() : 0 %></div>
                 <small style="color: var(--text-muted)">pendiente declarar</small>
             </div>
             <div class="stat-card">
                 <h3>Clientes activos</h3>
-                <div class="value">0</div>
+                <div class="value"><%= totalCustomers ? totalCustomers : 0 %></div>
                 <small style="color: var(--text-muted)">registrados</small>
             </div>
         </div>
-
+        <div class="stat-card" style="min-height: 250px;">
+            <h3>Últimas facturas</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% latestInvoices.forEach(invoice => { %>
+                        <tr>
+                            <td>#<%= invoice.id %></td>
+                            <td><%= invoice.Customer ? invoice.Customer.name : 'N/A' %></td>
+                            <td>$<%= invoice.total %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
         <!-- Secciones de Visualización Inferiores -->
         <div class="main-grid">
             <div class="stat-card" style="min-height: 250px;">
@@ -46,6 +66,24 @@
             </div>
             <div class="stat-card" style="min-height: 250px;">
                 <h3>Últimas facturas</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% latestInvoices.forEach(invoice => { %>
+                            <tr>
+                                <td><%= invoice.Customer.name %></td>
+                                <td><%= invoice.date %></td>
+                                <td>$<%= invoice.total.toLocaleString() %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
                 <!-- Listado rápido de las facturas generadas automáticamente [3] -->
             </div>
         </div>

@@ -18,3 +18,17 @@ exports.getById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.annul = async (req, res) => {
+    try {
+        // Llama al servicio que actualiza el estado a 'CANCELLED' [3]
+        const result = await service.annulInvoice(req.params.id);
+        res.json({ 
+            message: 'Factura anulada correctamente', 
+            result 
+        });
+    } catch (error) {
+        // Maneja errores como "Factura no encontrada" [3]
+        res.status(400).json({ message: error.message });
+    }
+};

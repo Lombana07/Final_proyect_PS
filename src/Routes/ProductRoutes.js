@@ -10,8 +10,8 @@ router.post('/', verifyToken, checkRole('ADMIN', 'BILLER'), controller.create);
 router.get('/', verifyToken, checkRole('ADMIN', 'BILLER', 'VIEWER'), controller.getAll);
 router.get('/:id', verifyToken, checkRole('ADMIN', 'BILLER', 'VIEWER'), controller.getById);
 
-// Solo ADMIN puede editar o desactivar productos [10]
+// Solo ADMIN puede editar o desactivar o activar productos [10]
 router.put('/:id', verifyToken, checkRole('ADMIN'), controller.update);
 router.delete('/:id', verifyToken, checkRole('ADMIN'), controller.disable);
-
+router.put('/:id/activate', verifyToken, checkRole('ADMIN'), controller.activate);
 module.exports = router;
