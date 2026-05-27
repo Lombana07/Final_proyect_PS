@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturas — FacturaX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/invoice.css">
+</head>
+<body>
+
+    <%- include('partials/sidebar') %>
+
+    <main class="main-content">
+
+        <!-- ── Header ── -->
+        <div class="invoices-header">
+            <h2>
+                <span>Administrar</span>
+                Gestión de Facturas
+            </h2>
+            <button class="btn-primary" onclick="openModal()">+ Nueva Factura</button>
+        </div>
+
+        <!-- ── Stats rápidas ── -->
+        <div class="invoices-stats">
+            <div class="istat istat--total">
+                <div class="istat__icon">🧾</div>
+                <div>
+                    <div class="istat__label">Total facturas</div>
+                    <div class="istat__val"><%= activeInvoices.length + annulledInvoices.length %></div>
+                </div>
+            </div>
+            <div class="istat istat--issued">
+                <div class="istat__icon">✅</div>
+                <div>
+                    <div class="istat__label">Emitidas</div>
+                    <div class="istat__val"><%= activeInvoices.length %></div>
+                </div>
+            </div>
+            <div class="istat istat--cancelled">
+                <div class="istat__icon">🚫</div>
+                <div>
+                    <div class="istat__label">Anuladas</div>
+                    <div class="istat__val"><%= annulledInvoices.length %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tabla facturas activas ── -->
+        <div class="invoices-panel">
+            <div class="invoices-panel__head">
+                <span class="invoices-panel__title">Facturas Emitidas</span>
+                <span class="invoices-panel__count"><%= activeInvoices.length %> registros</span>
+            </div>
+            <table class="invoices-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Subtotal</th>
+                        <th>IVA</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% activeInvoices.forEach(inv => { %>
+                    <tr>
+                        <td><span class="invoice-id">#<%= inv.id %></span></td>
+                        <td>
+                            <div class="invoice-customer-cell">
+                                <div class="invoice-customer-avatar">
+                                    <%= inv.Customer ? inv.Customer.name.trim().split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() : 'NA' %>
+                                </div>
+                                <span><%= inv.Customer ? inv.Customer.name : 'N/A' %></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="invoice-date">
+                                <%= new Date(inv.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                            </span>
+                        </td>
+                        <td><span class="invoice-subtotal">$<%= parseFloat(inv.subtotal).toLocaleString('es-CO') %></span></td>
+                        <td><span class="invoice-tax">$<%= parseFloat(inv.tax).toLocaleString('es-CO') %></span></td>
+                        <td><span class="invoice-total">$<%= parseFloat(inv.total).toLocaleString('es-CO') %></span></td>
+                        <td><span class="pill pill--issued">Emitida</span></td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-delete" onclick="annulInvoice('<%= inv.id %>')">Anular</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                    <% if (activeInvoices.length === 0) { %>
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding: 32px; color: var(--text-faint); font-size: 13px;">
+                            No hay facturas emitidas
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── Separador + tabla anuladas ── -->
+        <% if (annulledInvoices.length > 0) { %>
+        <div class="invoices-divider">
+            <span class="invoices-divider__label">Historial de Facturas Anuladas</span>
+            <div class="invoices-divider__line"></div>
+            <span class="invoices-panel__count"><%= annulledInvoices.length %></span>
+        </div>
+
+        <div class="invoices-panel invoices-panel--cancelled">
+            <table class="invoices-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Subtotal</th>
+                        <th>IVA</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% annulledInvoices.forEach(inv => { %>
+                    <tr>
+                        <td><span class="invoice-id" style="opacity: 0.5">#<%= inv.id %></span></td>
+                        <td>
+                            <div class="invoice-customer-cell">
+                                <div class="invoice-customer-avatar" style="background: rgba(248,113,113,0.08); color: #f87171;">
+                                    <%= inv.Customer ? inv.Customer.name.trim().split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() : 'NA' %>
+                                </div>
+                                <span style="color: var(--text-muted)"><%= inv.Customer ? inv.Customer.name : 'N/A' %></span>
+                            </div>
+                        </td>
+                        <td><span class="invoice-date"><%= new Date(inv.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) %></span></td>
+                        <td><span class="invoice-subtotal">$<%= parseFloat(inv.subtotal).toLocaleString('es-CO') %></span></td>
+                        <td><span class="invoice-tax" style="opacity: 0.5">$<%= parseFloat(inv.tax).toLocaleString('es-CO') %></span></td>
+                        <td><span class="invoice-total" style="color: var(--text-faint) !important;">$<%= parseFloat(inv.total).toLocaleString('es-CO') %></span></td>
+                        <td><span class="pill pill--cancelled">Anulada</span></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <% } %>
+
+    </main>
+
+    <!-- ── Modal nueva factura ── -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <div class="modal__header">
+                <div>
+                    <div class="modal__title">Nueva Factura</div>
+                    <div class="modal__sub">Seleccione cliente y agregue productos</div>
+                </div>
+                <button class="modal__close" onclick="closeModal()">✕</button>
+            </div>
+
+            <!-- Cliente -->
+            <div class="form-group">
+                <label>Cliente</label>
+                <select id="customerId" class="form-select">
+                    <option value="">Seleccionar cliente…</option>
+                    <% customers.forEach(c => { %>
+                        <option value="<%= c.id %>"><%= c.name %> — <%= c.documentNumber %></option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Agregar productos -->
+            <p class="modal__section-title">Agregar Productos</p>
+            <div class="item-add-row">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Producto</label>
+                    <select id="tempProduct" class="form-select">
+                        <% products.forEach(p => { %>
+                            <option value="<%= p.id %>" data-price="<%= p.price %>" data-tax="<%= p.taxPercentage %>" data-name="<%= p.name %>">
+                                <%= p.name %> — $<%= parseFloat(p.price).toLocaleString('es-CO') %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Cantidad</label>
+                    <input type="number" id="tempQty" value="1" min="1" class="form-input">
+                </div>
+                <button type="button" class="btn-primary" onclick="addItem()" style="align-self: flex-end;">Agregar</button>
+            </div>
+
+            <!-- Tabla ítems -->
+            <table class="items-table" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th class="col-price">Precio</th>
+                        <th class="col-subtotal">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <tr id="emptyRow">
+                        <td colspan="4" style="text-align:center; padding: 20px; color: var(--text-faint); font-size: 12px;">
+                            Sin productos agregados
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Resumen totales -->
+            <div class="invoice-summary">
+                <div class="invoice-summary__row">
+                    <span>Subtotal</span>
+                    <span id="lblSubtotal">$0</span>
+                </div>
+                <div class="invoice-summary__row">
+                    <span>IVA</span>
+                    <span id="lblTax">$0</span>
+                </div>
+                <div class="invoice-summary__row">
+                    <span>Total</span>
+                    <span id="lblTotal">$0</span>
+                </div>
+            </div>
+
+            <div class="modal__footer">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button type="button" class="btn-primary" onclick="saveInvoice()">Emitir Factura</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedItems = [];
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            selectedItems = [];
+            renderItems();
+        }
+
+        function closeModalOutside(e) {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        }
+
+        function addItem() {
+            const select  = document.getElementById('tempProduct');
+            const product = select.options[select.selectedIndex];
+            const qty     = parseInt(document.getElementById('tempQty').value) || 1;
+
+            selectedItems.push({
+                productId: product.value,
+                name:      product.dataset.name,
+                price:     parseFloat(product.dataset.price),
+                tax:       parseFloat(product.dataset.tax) || 0,
+                quantity:  qty
+            });
+            renderItems();
+        }
+
+        function renderItems() {
+            const body = document.getElementById('itemsBody');
+            body.innerHTML = '';
+
+            if (selectedItems.length === 0) {
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-faint); font-size: 12px;">Sin productos agregados</td></tr>`;
+                document.getElementById('lblSubtotal').textContent = '$0';
+                document.getElementById('lblTax').textContent      = '$0';
+                document.getElementById('lblTotal').textContent    = '$0';
+                return;
+            }
+
+            let subtotal = 0;
+            let totalTax = 0;
+
+            selectedItems.forEach((item, idx) => {
+                const lineBase = item.price * item.quantity;
+                const lineTax  = lineBase * (item.tax / 100);
+                subtotal += lineBase;
+                totalTax += lineTax;
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td class="col-price">$${item.price.toLocaleString('es-CO')}</td>
+                        <td class="col-subtotal">$${lineBase.toLocaleString('es-CO')}</td>
+                    </tr>`;
+            });
+
+            const total = subtotal + totalTax;
+            document.getElementById('lblSubtotal').textContent = '$' + subtotal.toLocaleString('es-CO');
+            document.getElementById('lblTax').textContent      = '$' + totalTax.toLocaleString('es-CO');
+            document.getElementById('lblTotal').textContent    = '$' + total.toLocaleString('es-CO');
+        }
+
+        async function saveInvoice() {
+            const customerId = document.getElementById('customerId').value;
+            if (!customerId)            return alert('Selecciona un cliente');
+            if (selectedItems.length === 0) return alert('Agrega al menos un producto');
+
+            const data = {
+                customerId,
+                items: selectedItems.map(i => ({ productId: i.productId, quantity: i.quantity }))
+            };
+
+            const res = await fetch('/api/invoices', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) { closeModal(); location.reload(); }
+            else alert('Error al crear la factura');
+        }
+
+        async function annulInvoice(id) {
+            if (!confirm('¿Seguro que desea anular esta factura?')) return;
+            const res = await fetch(`/api/invoices/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            if (res.ok) location.reload();
+            else alert('Error al anular la factura');
+        }
+    </script>
+
+</body>
+</html>

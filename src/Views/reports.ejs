@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes Fiscales - FacturaX</title>
+    <!-- Cargamos el CSS base y el específico de reportes -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/reports.css">
+</head>
+<body>
+    <%- include('partials/sidebar') %>
+
+    <main>
+        <div class="header">
+            <h2>Reportes Contables</h2>
+            <div class="user-badge">ADMIN / AUDITOR</div>
+        </div>
+
+        <!-- Filtros de búsqueda -->
+        <div class="stat-card filter-section">
+            <h3>Filtro por Rango de Fechas</h3>
+            <div class="filter-form">
+                <div class="input-group">
+                    <label>Desde:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="input-group">
+                    <label>Hasta:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" onclick="generateReport()">Generar Reporte</button>
+                    <button class="btn-edit" onclick="sendByEmail()">📧 Enviar Correo</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsArea" style="display: none;">
+            <!-- Resumen DIAN -->
+            <div class="stat-card table-container">
+                <div class="table-header">
+                    <h3>Resumen de Impuestos Generados (DIAN)</h3>
+                    <span class="tag">IVA por Producto</span>
+                </div>
+                <table class="data-table" id="taxTable">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Ventas Brutas</th>
+                            <th>IVA %</th>
+                            <th>Total IVA</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Listado de Facturas -->
+            <div class="stat-card table-container">
+                <h3>Detalle de Facturas del Periodo</h3>
+                <table class="data-table" id="invoiceTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function generateReport() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+
+        if (!start || !end) return alert("Por favor selecciona ambas fechas");
+
+        try {
+            const res = await fetch(`/api/invoices/reports/tax-summary?startDate=${start}&endDate=${end}`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
+            const { data } = await res.json();
+
+            // 1. Mostrar resultados en las tablas (para vista previa)
+            renderTables(data);
+
+            // 2. Generar y descargar el archivo CSV automáticamente
+            downloadCSV(data, start, end);
+
+            } catch (error) {
+            console.error("Error generando reporte:", error);
+            alert("Hubo un error al obtener los datos.");
+            }
+    }
+
+    async function sendByEmail() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+
+        if (!start || !end) return alert("Primero selecciona las fechas del reporte");
+
+        const email = prompt("Ingresa el correo del administrador o auditor:");
+        if (!email) return;
+
+        try {
+            const res = await fetch('/api/invoices/reports/send-email', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token') 
+                },
+                body: JSON.stringify({ startDate: start, endDate: end, email: email })
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                alert("Reporte enviado con éxito a " + email);
+            } else {
+                alert("Error: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error enviando email:", error);
+            alert("No se pudo conectar con el servidor de correo.");
+        }
+    }
+
+        // Función para renderizar las tablas en el HTML
+    function renderTables(data) {
+    
+        document.getElementById('resultsArea').style.display = 'block';
+    
+        // TABLA FACTURAS
+        const invBody = document.querySelector('#invoiceTable tbody');
+    
+        invBody.innerHTML = data.invoices.map(inv => `
+            <tr>
+                <td>INV-${inv.id}</td>
+                <td>${new Date(inv.date).toLocaleDateString()}</td>
+                <td>${inv.Customer ? inv.Customer.name : 'Cliente Eliminado'}</td>
+                <td>$${parseFloat(inv.total).toLocaleString()}</td>
+                <td><span class="tag">${inv.status}</span></td>
+            </tr>
+        `).join('');
+        
+        // TABLA IMPUESTOS
+        const taxBody = document.querySelector('#taxTable tbody');
+        
+        taxBody.innerHTML = Object.entries(data.taxSummary).map(([name, info]) => `
+            <tr>
+                <td>${name}</td>
+                <td>$${parseFloat(info.totalSales).toLocaleString()}</td>
+                <td>${info.taxRate}%</td>
+                <td>$${parseFloat(info.totalTax).toLocaleString()}</td>
+                <td>
+                    <span class="tag">
+                        ${info.currentStatus}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+        // Función para convertir JSON a CSV y descargar (Requerimiento [1])
+    function downloadCSV(data, start, end) {
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        // Encabezados del reporte DIAN [3]
+        csvContent += "REPORTE FISCAL DIAN\n";
+        csvContent += `Periodo:;${start};a;${end}\n\n`;
+        csvContent += "Producto;Ventas Brutas;IVA (%);Total IVA;Estado Actual\n";
+
+        // Contenido del Resumen de Impuestos
+        Object.entries(data.taxSummary).forEach(([name, info]) => {
+            csvContent += `${name};${info.totalSales};${info.taxRate};${info.totalTax};${info.currentStatus}\n`;
+        });
+
+        // Crear link de descarga
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Reporte_DIAN_${start}_${end}.csv`);
+        document.body.appendChild(link);
+
+        link.click(); // Dispara la descarga
+        document.body.removeChild(link);
+    }
+    </script>
+</body>
+</html>

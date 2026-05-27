@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const User = require('../Models/User');
 
-// 🔥 CREATE USER
+// CREATE USER
 exports.create = async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -28,7 +28,7 @@ exports.create = async (req, res) => {
   }
 };
 
-// 🔥 UPDATE USER
+// UPDATE USER
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
@@ -59,7 +59,7 @@ exports.update = async (req, res) => {
   }
 };
 
-// 🔥 DELETE USER
+// DELETE USER
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;

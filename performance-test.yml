@@ -1,0 +1,65 @@
+config:
+  target: "http://localhost:3000" # Ajusta a tu URL local
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 20
+      name: "Fase de carga progresiva"
+
+scenarios:
+  - name: "Flujo de consulta de Dashboard"
+    flow:
+      - get:
+          url: "/dashboard"
+
+  - name: "Flujo completo de facturación"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            # CAMBIO: Pon aquí un usuario y contraseña reales de tu BD
+            username: "WendyInfante" 
+            password: "0509"
+          capture:
+            json: "$.token"
+            as: "token"
+      - post:
+          url: "/api/invoices"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            # CAMBIO: Asegúrate de que el customerId 1 y el productId 1 existan
+            customerId: 13
+            items:
+              - productId: 13
+                quantity: 1
+  # ESCENARIO 1: El Facturador (BILLER) - Puede crear pero no borrar
+  - name: "Flujo de Trabajo BILLER"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json: { username: "BILLER1", password: "1234" }
+          capture: { json: "$.token", as: "tokenBiller" }
+      - get:
+          url: "/dashboard"
+      - post: # Debería funcionar (201) [6]
+          url: "/api/invoices"
+          headers: { Authorization: "Bearer {{ tokenBiller }}" }
+          json: { customerId: 13, items: [{ productId: 13, quantity: 1 }] }
+      - delete: # Debería dar ERROR 403 (Prohibido) [7]
+          url: "/api/customers"
+          headers: { Authorization: "Bearer {{ tokenBiller }}" }
+ # ESCENARIO 2: El Auditor (VIEWER) - Solo puede ver listas
+  - name: "Flujo de Trabajo VIEWER"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json: { username: "VIEWER1", password: "4321" }
+          capture: { json: "$.token", as: "tokenViewer" }
+      - get: # Debería funcionar (200) [8]
+          url: "/api/products"
+          headers: { Authorization: "Bearer {{ tokenViewer }}" }
+      - post: # Debería dar ERROR 403 (Prohibido) [6]
+          url: "/api/invoices"
+          headers: { Authorization: "Bearer {{ tokenViewer }}" }
+          json: { customerId: 13, items: [{ productId: 13, quantity: 1 }] }

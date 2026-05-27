@@ -19,24 +19,37 @@ describe('Customer Controller', () => {
     };
   });
 
-  test('should create customer', async () => {
-    const mockCustomer = { id: 1, name: 'David' };
+test('should create customer', async () => {
+  const mockCustomer = {
+    id: 1,
+    name: 'David',
+    documentType: 'CC',
+    documentNumber: '123456789',
+    isActive: true
+  };
 
-    req.body = mockCustomer;
-    service.createCustomer.mockResolvedValue(mockCustomer);
+  req.body = mockCustomer;
+  service.createCustomer.mockResolvedValue(mockCustomer);
 
-    await controller.create(req, res);
+  await controller.create(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(mockCustomer);
-  });
+  expect(service.createCustomer).toHaveBeenCalledWith(mockCustomer);
+  expect(res.status).toHaveBeenCalledWith(201);
+  expect(res.json).toHaveBeenCalledWith(mockCustomer);
+});
 
   test('should return error on create', async () => {
-    service.createCustomer.mockRejectedValue(new Error('Error'));
+  req.body = {
+    name: 'David',
+    documentType: 'CC',
+    documentNumber: '123'
+  };
 
-    await controller.create(req, res);
+  service.createCustomer.mockRejectedValue(new Error('Error'));
 
-    expect(res.status).toHaveBeenCalledWith(400);
-  });
+  await controller.create(req, res);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+});
 
 });

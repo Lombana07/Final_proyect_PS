@@ -12,16 +12,27 @@ describe('Customer Service', () => {
   test('should create a customer', async () => {
     const mockData = {
       name: 'David',
-      document_type: 'CC',
-      document_number: '123'
+      documentType: 'CC',
+      documentNumber: '123'
     };
 
-    Customer.create.mockResolvedValue(mockData);
+    const createdCustomer = {
+      id: 1,
+      ...mockData,
+      isActive: true
+    };
+
+    Customer.create.mockResolvedValue(createdCustomer);
 
     const result = await service.createCustomer(mockData);
 
-    expect(Customer.create).toHaveBeenCalledWith(mockData);
-    expect(result).toEqual(mockData);
+    expect(Customer.create).toHaveBeenCalledWith({
+      name: 'David',
+      documentType: 'CC',
+      documentNumber: '123',
+    });
+
+    expect(result).toEqual(createdCustomer);
   });
 
   test('should throw error if missing fields', async () => {
@@ -38,7 +49,7 @@ describe('Customer Service', () => {
     const result = await service.getCustomers();
 
     expect(Customer.findAll).toHaveBeenCalledWith({
-      where: { status: true }
+      where: { isActive: true }
     });
 
     expect(result).toEqual(mockCustomers);
