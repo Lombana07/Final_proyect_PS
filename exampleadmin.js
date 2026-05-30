@@ -6,15 +6,15 @@ async function createAdmin() {
   try {
     await sequelize.authenticate();
 
-    const hashedPassword = await bcrypt.hash('4321', 10);
+    const hashedPassword = await bcrypt.hash('0509', 10);
 
     const user = await User.create({
-      username: 'VIEWER1',
+      username: 'WendyInfante',
       password: hashedPassword,
-      role: 'VIEWER'
+      role: 'ADMIN'
     });
 
-    console.log('✅ VIEWER creado:', user.username);
+    console.log('✅ ADMIN creado:', user.username);
 
     process.exit();
   } catch (error) {

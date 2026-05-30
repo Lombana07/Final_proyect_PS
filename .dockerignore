@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+.git
+.gitignore
+*.md
+dist
+.DS_Store
+test/
+tests/
+playwright-report/
+test-results/
+report.json
+performance-test.yml
+playwright.config.js
